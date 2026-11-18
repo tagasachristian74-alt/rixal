@@ -1,0 +1,2 @@
+# rixal
+tourism game
