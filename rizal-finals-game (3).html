@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rizal Finals — Infinite Review Game</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:linear-gradient(135deg,#0f2027 0%,#203a43 45%,#2c5364 100%);color:#fff;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;animation:float 12s ease-in-out infinite}
+.orb1{width:380px;height:380px;background:#f5c518;top:-120px;left:-120px}
+.orb2{width:320px;height:320px;background:#e94560;bottom:-100px;right:-80px;animation-delay:-4s}
+.orb3{width:260px;height:260px;background:#4cc9f0;top:40%;left:60%;animation-delay:-8s}
+@keyframes float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.08)}}
+.container{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:28px 18px 60px}
+header{text-align:center;margin-bottom:22px}
+.badge{display:inline-block;background:rgba(245,197,24,.18);border:1px solid rgba(245,197,24,.5);color:#f5c518;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:700;letter-spacing:1px}
+h1{font-size:clamp(28px,5vw,44px);margin:12px 0 6px;line-height:1.1}
+h1 span{color:#f5c518}
+.sub{opacity:.85;font-size:15px}
+.card{background:rgba(255,248,231,.97);color:#1a1a2e;border-radius:24px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:pop .35s ease}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{flex:1;min-width:110px;background:#0f2027;color:#fff;border-radius:16px;padding:12px;text-align:center}
+.stat b{font-size:22px;color:#f5c518;display:block}
+.stat small{opacity:.8;font-size:12px}
+.progress{height:12px;background:#e8e0c8;border-radius:999px;overflow:hidden;margin:10px 0 18px}
+.progress div{height:100%;background:linear-gradient(90deg,#f5c518,#e94560);width:0%;transition:width .4s}
+.qtype{display:inline-block;background:#203a43;color:#f5c518;padding:6px 14px;border-radius:999px;font-weight:800;font-size:13px;letter-spacing:.5px}
+.qtext{font-size:clamp(19px,3vw,24px);font-weight:700;line-height:1.35;margin:16px 0 20px}
+input[type=text]{width:100%;padding:16px;border:2px solid #203a43;border-radius:14px;font-size:18px;outline:none}
+input[type=text]:focus{border-color:#e94560}
+.btn{border:none;cursor:pointer;font-weight:800;border-radius:14px;padding:15px 22px;font-size:16px;transition:transform .15s,opacity .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:scale(.98)}
+.btn-gold{background:linear-gradient(135deg,#f5c518,#e8a90c);color:#1a1a2e;width:100%;font-size:19px;padding:18px}
+.btn-dark{background:#203a43;color:#fff}
+.btn-red{background:#e94560;color:#fff}
+.btn-green{background:#06d6a0;color:#06281e}
+.btn-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.btn-row .btn{flex:1}
+.choice{display:block;width:100%;text-align:left;background:#fff;border:2px solid #203a43;border-radius:14px;padding:14px 16px;margin:8px 0;font-size:16px;cursor:pointer;font-weight:600;color:#1a1a2e}
+.choice:hover{border-color:#e94560;background:#fff5f7}
+.tf-row{display:flex;gap:12px}
+.tf-row .btn{flex:1;font-size:22px;padding:20px}
+.hintbox{background:#fff3cd;border:2px dashed #e8a90c;border-radius:16px;padding:14px;margin-top:14px}
+.hintbox h4{margin-bottom:8px}
+.feedback{font-size:28px;font-weight:900;margin-bottom:8px}
+.correct{color:#06a67a}
+.wrong{color:#e94560}
+.explain{background:#eef6ff;border-left:6px solid #4cc9f0;padding:14px;border-radius:12px;margin:14px 0;line-height:1.5}
+.answerbox{background:#0f2027;color:#f5c518;padding:14px;border-radius:12px;margin:12px 0;font-weight:700}
+.small{font-size:14px;opacity:.75}
+.list{margin:12px 0 0 18px;line-height:1.6}
+.center{text-align:center}
+.mt{margin-top:16px}
+.pill{display:inline-block;background:#e94560;color:#fff;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:800}
+.streak{color:#e94560;font-weight:900}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
+<div class="container">
+<header>
+<div class="badge">NO TIMER • INFINITE • FINALS REVIEW</div>
+<h1>RIZAL FINALS <span>Review Game</span></h1>
+<p class="sub">Identification • True or False (mahirap) • Matching (mahirap) — lahat ng files mo, 200+ questions!</p>
+</header>
+
+<div class="card" id="startScreen">
+<h2 class="center">Paano laruin?</h2>
+<p class="mt">Isang game lang, pero <b>infinite</b> — mag-shuffle ang 200+ questions hangga't gusto mo. Walang timer, ikaw lang vs. utak mo.</p>
+<ul class="list">
+<li><b>Identification:</b> i-type ang sagot. May <b>Hint</b> button — 4 choices (1 tama, 3 mali).</li>
+<li><b>True or False:</b> pindutin TRUE o FALSE. Sobrang tricky ang statements.</li>
+<li><b>Matching:</b> piliin ang tamang definition ng term. Mahirap ang choices.</li>
+<li>May score, streak, accuracy. Sa dulo, makikita mo lahat ng mali mo para ma-review.</li>
+</ul>
+<p class="mt small center">Tip: basahin muna ang explanation pagkatapos ng bawat sagot — dun ka pinaka-mabilis mag-memorize.</p>
+<button class="btn btn-gold mt" id="startBtn">▶ START GAME — Lahat ng Files (245 Qs, Infinite)</button>
+<button class="btn btn-red mt" id="focusedBtn" style="width:100%;margin-top:12px">🎯 FOCUSED GAME — Reviewer (3) + Rizal_G6 + Trip Back Home Lang (199 Qs)</button>
+<p class="small center mt">Focused button = Identification + True/False + Matching, pero <b>3 files lang</b> ang laman (Final Journey + Return to Europe/El Filibusterismo + Hong Kong/Dapitan). Walang halo from Life/Works PDF.</p>
+<p class="small center mt" id="bestLine"></p>
+</div>
+
+<div class="card" id="gameScreen" hidden>
+<div class="stats">
+<div class="stat"><b id="scoreVal">0</b><small>SCORE</small></div>
+<div class="stat"><b id="streakVal">0</b><small>STREAK 🔥</small></div>
+<div class="stat"><b id="qVal">1</b><small>QUESTION</small></div>
+<div class="stat"><b id="accVal">100%</b><small>ACCURACY</small></div>
+</div>
+<div class="progress"><div id="progBar"></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+<span class="qtype" id="typeBadge">IDENTIFICATION</span>
+<button class="btn btn-dark" id="endBtn" style="padding:8px 14px;font-size:13px">End Game</button>
+</div>
+<div class="qtext" id="qText"></div>
+<div id="answerArea"></div>
+<div id="hintArea"></div>
+</div>
+
+<div class="card" id="feedbackScreen" hidden>
+<div class="feedback" id="fbTitle">Tama!</div>
+<div class="answerbox" id="fbAnswer"></div>
+<div class="explain" id="fbExplain"></div>
+<button class="btn btn-gold" id="nextBtn">Next Question →</button>
+</div>
+
+<div class="card" id="resultScreen" hidden>
+<h2 class="center">Game Over — Results</h2>
+<div class="stats mt">
+<div class="stat"><b id="rTotal">0</b><small>ANSWERED</small></div>
+<div class="stat"><b id="rCorrect">0</b><small>CORRECT</small></div>
+<div class="stat"><b id="rAcc">0%</b><small>ACCURACY</small></div>
+<div class="stat"><b id="rBest">0</b><small>BEST STREAK</small></div>
+</div>
+<h3 class="center mt" id="rGrade"></h3>
+<p class="center small">Score: <b id="rScore">0</b></p>
+<div id="mistakesBox" class="mt"></div>
+<button class="btn btn-gold mt" id="againBtn">↻ PLAY AGAIN (Infinite Shuffle)</button>
+<button class="btn btn-dark mt" id="homeBtn" style="width:100%">Back to Start</button>
+</div>
+</div>
+<script>
+const IDENTIFICATION=[
+{q:"Who is the proponent of Republic Act 1425 (Rizal Law)?",a:"Jose P. Laurel",al:["jose p laurel","jose p. laurel"],e:"Jose P. Laurel ang proponent ng RA 1425, enacted June 12, 1956."},
+{q:"When was Republic Act 1425 enacted?",a:"June 12, 1956",al:["june 12 1956","june 12,1956"],e:"June 12, 1956 — RA 1425 mandates teaching Rizal's life, works, writings."},
+{q:"What is Rizal's full name?",a:"Jose Protacio Mercado Rizal Alonso y Realonda",al:["jose protacio rizal mercado alonso y realonda","jose protacio mercado rizal alonso y realonda"],e:"Jose Protacio Mercado Rizal Alonso y Realonda, 7th child, called Pepe."},
+{q:"On what date was Rizal born?",a:"June 19, 1861",al:["june 19 1861"],e:"June 19, 1861, 11pm-midnight, Calamba, Laguna."},
+{q:"Where was Rizal born?",a:"Calamba, Laguna",al:["calamba laguna","calamba"],e:"Calamba, Laguna — lakeshore town."},
+{q:"Who was Rizal's first teacher?",a:"Dona Teodora Alonzo",al:["teodora alonzo","dona teodora alonzo y realonda","his mother","teodora alonzo y realonda"],e:"His mother Dona Teodora taught him at age 3: alphabet, prayers, Bible."},
+{q:"What story taught by his mother deeply influenced Rizal?",a:"Story of the Moth",al:["story of the moth","fable of the young moth","story of the moth and the light"],e:"Story of the Moth from El Amigo de los Ninos — young moth burns in lamp; mother warned him not to be disobedient."},
+{q:"What Spanish reader was his mother teaching him to read?",a:"El Amigo de los Ninos",al:["el amigo de los ninos","the childrens friend","el amigo delos ninos"],e:"El Amigo de los Ninos (The Children's Friend)."},
+{q:"Who traced Rizal's family roots and discovered his Chinese ancestry?",a:"Dr. Austin Craig",al:["austin craig","dr austin craig"],e:"Dr. Austin Craig, well-known Rizalist."},
+{q:"What was the original surname of Rizal's great-great grandfather before changing to Mercado?",a:"Lamco",al:["lamco","cue yi lam","cue yi-lam"],e:"Don Domingo Lamco (Cue Yi-Lam) from Amoy, China."},
+{q:"What does 'Mercado' mean in Spanish?",a:"Market",al:["market"],e:"Mercado = market. Changed from Lamco to avoid conflict with Spanish authorities."},
+{q:"Who was Rizal's father?",a:"Don Francisco Mercado Rizal",al:["don francisco mercado rizal","francisco mercado","don francisco"],e:"Don Francisco Mercado Rizal (1818-1898), born Binan, studied Latin/Philosophy at San Jose."},
+{q:"Who was Rizal's mother?",a:"Dona Teodora Alonzo y Realonda",al:["dona teodora alonzo y realonda","teodora alonzo","dona teodora alonzo"],e:"Dona Teodora Alonzo y Realonda (1826-1911), Colegio de Sta. Rosa."},
+{q:"How many children did Rizal's parents have?",a:"11 children",al:["11","eleven","11 children"],e:"11 children: 2 boys, 9 girls."},
+{q:"Who was Rizal's confidant and adviser, the second child?",a:"Paciano Rizal",al:["paciano","paciano rizal"],e:"Paciano (1851-1930) convinced Rizal to study in Europe without parents' permission."},
+{q:"What was Rizal's nickname?",a:"Pepe",al:["pepe"],e:"Pepe — family nickname."},
+{q:"Who baptized Rizal?",a:"Rev. Fr. Rufino Collantes",al:["fr rufino collantes","rufino collantes","rev fr rufino collantes"],e:"Fr. Rufino Collantes baptized him June 22, 1861 (3 days old)."},
+{q:"Who was Rizal's godfather at baptism?",a:"Rev. Fr. Pedro Casanas",al:["pedro casanas","fr pedro casanas"],e:"Fr. Pedro Casanas stood as godfather."},
+{q:"What organization did Rizal found on July 3, 1892?",a:"La Liga Filipina",al:["la liga filipina","liga filipina"],e:"La Liga Filipina — civic association to unite Filipinos, peaceful reforms."},
+{q:"Where was Rizal exiled after La Liga?",a:"Dapitan",al:["dapitan"],e:"Dapitan, Mindanao — 4 years exile 1892-1896."},
+{q:"Who was the Spanish commander in Dapitan who befriended Rizal?",a:"Captain Ricardo Carnicero",al:["ricardo carnicero","captain ricardo carnicero","capt carnicero"],e:"Capt. Ricardo Carnicero — warm/friendly, gave Rizal freedom."},
+{q:"What lottery ticket number won in Dapitan?",a:"9736",al:["9736","ticket 9736","no 9736"],e:"Ticket No. 9736 won 20,000 pesos."},
+{q:"How much was Rizal's share from the lottery?",a:"6,200 pesos",al:["6200 pesos","6200","6,200","6,200 pesos"],e:"Rizal share 6,200 pesos (2,000 to father, 200 to Basa, rest invested in Talisay land)."},
+{q:"What was the real name of the spy 'Pablo Mercado'?",a:"Florencio Namanan",al:["florencio nanan","florencio nanan"],e:"Florencio Namanan, hired by Recollect friars to spy, not assassinate."},
+{q:"How many boys did Rizal teach in Dapitan?",a:"16 boys",al:["16","sixteen","16 boys"],e:"16 boys, 1893-1896, academics + English/Spanish + arnis."},
+{q:"What hymn did Rizal write for his Dapitan students?",a:"Himno a Talisay",al:["himno a talisay","hymn to talisay"],e:"Himno a Talisay — prepares students to be brave protectors."},
+{q:"How many shells did Rizal collect in Dapitan?",a:"346 shells",al:["346","346 shells"],e:"346 shells (203 species) — conchology."},
+{q:"Which museum in Dresden did Rizal exchange specimens with?",a:"Dresden Museum",al:["dresden museum"],e:"Dresden Museum in exchange for books and surgical instruments."},
+{q:"How many hectares did Rizal acquire for home, school, and hospital?",a:"16 hectares",al:["16 hectares","16"],e:"16 hectares initially."},
+{q:"How many hectares did Rizal's farmland expand to?",a:"70 hectares",al:["70 hectares","70"],e:"Expanded to 70 hectares with modern methods."},
+{q:"What did Rizal invent in 1887?",a:"Sulpukan",al:["sulpukan"],e:"Sulpukan — wooden cigarette lighter, sent to Blumentritt."},
+{q:"Who did Rizal send the Sulpukan to?",a:"Ferdinand Blumentritt",al:["blumentritt","ferdinand blumentritt"],e:"Ferdinand Blumentritt, Austrian professor friend in Germany."},
+{q:"How many bricks per day did Rizal's brick machine produce?",a:"6,000 bricks",al:["6000 bricks","6,000","6000"],e:"6,000 bricks/day, techniques from Germany/Belgium."},
+{q:"When did Rizal organize the Cooperative Association of Dapitan Farmers?",a:"January 1, 1895",al:["january 1 1895","jan 1 1895","january 1,1895"],e:"Jan 1, 1895 — to break Chinese monopoly."},
+{q:"How many languages did Rizal know?",a:"22 languages",al:["22","twenty two","22 languages"],e:"22 languages — born polyglot."},
+{q:"What languages did Rizal learn in Dapitan?",a:"Bisayan, Subanun, and Malay",al:["bisayan subanun malay","bisayan","subanun","malay"],e:"Bisayan, Subanun, Malay learned in Dapitan."},
+{q:"Who was Rizal's lover in Dapitan?",a:"Josephine Bracken",al:["josephine bracken","josephine"],e:"Josephine Bracken, Irish girl from Hong Kong."},
+{q:"What was Josephine's adoptive father's name?",a:"Mr. George Taufer",al:["george taufer","mr george taufer"],e:"Mr. George Taufer, blind, came to Dapitan for eye treatment."},
+{q:"What was the name of Rizal and Josephine's son?",a:"Francisco",al:["francisco"],e:"Francisco (named after Rizal's father), died after 3 hours, buried in Dapitan."},
+{q:"Who visited Rizal in Dapitan in 1896 to inform him about the Katipunan?",a:"Dr. Pio Valenzuela",al:["pio valenzuela","dr pio valenzuela"],e:"Dr. Pio Valenzuela — Rizal opposed revolution, refused rescue."},
+{q:"Where did Rizal apply to serve as a volunteer doctor?",a:"Cuba",al:["cuba"],e:"Cuba — to gain medical experience, approved by Blanco."},
+{q:"Who approved Rizal's application to go to Cuba?",a:"Governor-General Ramon Blanco",al:["ramon blanco","gov gen ramon blanco","governor general ramon blanco"],e:"Gov.-Gen. Ramon Blanco approved."},
+{q:"When did Rizal leave Dapitan?",a:"July 31, 1896",al:["july 31 1896","july 31,1896"],e:"July 31, 1896 — 4-year exile ended."},
+{q:"What steamer did Rizal take when leaving Dapitan?",a:"Espana",al:["espana","steamer espana"],e:"Steamer Espana with Josephine, Narcisa, nephews, 6 pupils."},
+{q:"Who discovered the Katipunan plan on August 19, 1896?",a:"Fray Mariano Gil",al:["mariano gil","fray mariano gil"],e:"Fray Mariano Gil, Tondo priest."},
+{q:"When did Rizal arrive in Hong Kong in 1891?",a:"November 20, 1891",al:["november 20 1891","nov 20 1891"],e:"Nov 20, 1891 — opened eye clinic with Dr. Lorenzo P. Marquez."},
+{q:"What colony did Rizal plan in Borneo?",a:"New Calamba",al:["new calamba"],e:"New Calamba for Calamba evictees."},
+{q:"How many acres were offered for the Borneo colony?",a:"100,000 acres",al:["100000 acres","100,000","100000"],e:"100,000 acres offered by British authorities."},
+{q:"When did Rizal sail to Hong Kong for the second time?",a:"February 3, 1888",al:["february 3 1888","feb 3 1888"],e:"Feb 3, 1888 — frustrated, wanted reform, followed by spy."},
+{q:"Who was Rizal's Japanese love in 1888?",a:"O-Sei-San",al:["o sei san","usui seiko","o-sei-san"],e:"O-Sei-San (Usui Seiko), 23-year-old Japanese woman."},
+{q:"What ship did Rizal take from Hong Kong to Japan?",a:"Oceanic",al:["oceanic"],e:"Oceanic after 3 weeks in Hong Kong."},
+{q:"What ship did Rizal take to the United States?",a:"Belgic",al:["belgic"],e:"Belgic, boarded April 13, 1888."},
+{q:"When did Rizal arrive in the United States?",a:"April 28, 1888",al:["april 28 1888"],e:"April 28, 1888 — visited SF, Oakland, Sacramento, Reno, NY."},
+{q:"What ship did Rizal take to Liverpool?",a:"City of Rome",al:["city of rome"],e:"City of Rome, May 16, 1888."},
+{q:"Who did Rizal love in London?",a:"Gertrude Beckett",al:["gertrude beckett","gertrude"],e:"Gertrude Beckett, daughter of Beckett family he boarded with."},
+{q:"What organization was founded on June 12, 1889 in London?",a:"Association Hispano-Filipino",al:["association hispano filipino"],e:"Association Hispano-Filipino — promote reforms and unity."},
+{q:"What book did Rizal annotate in London?",a:"Morga's Sucesos de las Islas Filipinas",al:["morgas sucesos","sucesos de las islas filipinas","morga"],e:"Antonio de Morga's Sucesos de las Islas Filipinas."},
+{q:"When was Rizal's Morga annotation published?",a:"January 1890",al:["january 1890","jan 1890"],e:"January 1890 by Garnier Freres."},
+{q:"What two statues did Rizal make in Paris?",a:"The Beggar and The Maid With A Basket",al:["the beggar","the maid with a basket","beggar and maid"],e:"The Beggar and The Maid With A Basket."},
+{q:"What club did Rizal organize in Paris?",a:"Kidlat Club",al:["kidlat club"],e:"Kidlat Club, later Indios Bravos."},
+{q:"What group did Rizal found after the Kidlat Club?",a:"Indios Bravos",al:["indios bravos"],e:"Indios Bravos — Filipinos recognized for excellence."},
+{q:"When did Rizal leave Paris for Brussels?",a:"January 28, 1890",al:["january 28 1890","jan 28 1890"],e:"Jan 28, 1890 — Paris too expensive, stayed with Jacoby sisters."},
+{q:"What pen names did Rizal use for La Solidaridad?",a:"Dimasalang and Laong Laan",al:["dimasalang","laong laan","dimasalang and laong laan"],e:"Dimasalang and Laong Laan."},
+{q:"Who did Rizal challenge to a duel in Madrid?",a:"Antonio Luna and Wenceslao Retana",al:["antonio luna","wenceslao retana","luna and retana"],e:"Antonio Luna (insulted Nellie Boustead) and Wenceslao Retana (insulted Rizal family)."},
+{q:"Who married Henry Kipping?",a:"Leonor Rivera",al:["leonor rivera"],e:"Leonor Rivera married Henry Kipping — broke Rizal's heart."},
+{q:"When was El Filibusterismo finished?",a:"March 29, 1891",al:["march 29 1891"],e:"Finished in Biarritz, March 29, 1891."},
+{q:"When was El Filibusterismo published?",a:"September 18, 1891",al:["september 18 1891","sept 18 1891"],e:"Sept 18, 1891, Ghent, F. Meyer-Van Loo Press."},
+{q:"Who helped Rizal finance El Filibusterismo from Paris?",a:"Valentin Ventura",al:["valentin ventura"],e:"Valentin Ventura sent money after Rizal pawned jewels."},
+{q:"Who was El Filibusterismo dedicated to?",a:"GOMBURZA",al:["gomburza","gomez burgos zamora"],e:"GOMBURZA (Gomez, Burgos, Zamora)."},
+{q:"Who is Ibarra in El Filibusterismo?",a:"Simuon",al:["simuon"],e:"Simuon — Ibarra disguised as wealthy jeweler seeking revenge."},
+{q:"Who is Basilio in El Filibusterismo?",a:"Sisa's surviving son",al:["sisas surviving son","sisa's surviving son","medical student"],e:"Basilio — Sisa's surviving son, medical student, joins Simuon after Juli's death."},
+{q:"What is Kabesang Tales' bandit name?",a:"Matanglawin",al:["matanglawin"],e:"Matanglawin (Hawkeye) — feared Luzon bandit."},
+{q:"What was hidden inside the wedding lamp in El Filibusterismo?",a:"Explosives",al:["explosives","explosive"],e:"Explosives hidden in lamp for Paulita/Juanito wedding."},
+{q:"Who threw the explosive lamp into the river?",a:"Isagani",al:["isagani"],e:"Isagani threw it to save Paulita and guests."},
+{q:"Who sheltered Simuon before his death?",a:"Fr. Florentino",al:["fr florentino","padre florentino","fr florentino"],e:"Fr. Florentino gave shelter; Dr. Tiburcio treated wound."},
+{q:"How many chapters does Noli Me Tangere have?",a:"64 chapters",al:["64","64 chapters"],e:"Noli: 64 chapters."},
+{q:"How many chapters does El Filibusterismo have?",a:"38 chapters",al:["38","38 chapters"],e:"Fili: 38 chapters."},
+{q:"What is the English title of Noli Me Tangere?",a:"Touch Me Not",al:["touch me not","social cancer"],e:"Touch Me Not / Social Cancer."},
+{q:"What is the English title of El Filibusterismo?",a:"The Reign of Greed",al:["the reign of greed","reign of greed"],e:"The Reign of Greed / Ang Paghahari ng Kasakiman."},
+{q:"When did Rizal leave Manila for Spain for the last time?",a:"September 2, 1896",al:["september 2 1896","sept 2 1896"],e:"Sept 2, 1896 on Isla de Panay."},
+{q:"What steamer did Rizal take on his final departure from Manila?",a:"Isla de Panay",al:["isla de panay"],e:"Isla de Panay to Spain/Cuba."},
+{q:"Where was Rizal imprisoned for his last three months?",a:"Fort Santiago",al:["fort santiago"],e:"Fort Santiago."},
+{q:"Who was Rizal's defense counsel (army officer)?",a:"Lt. Luis Taviel de Andrade",al:["luis taviel de andrade","lt luis taviel de andrade","taviel de andrade"],e:"Lt. Luis Taviel de Andrade — brother of Rizal's former bodyguard."},
+{q:"When was Rizal's court-martial?",a:"December 26, 1896",al:["december 26 1896","dec 26 1896"],e:"Dec 26, 1896, 8am, Cuartel de Espana."},
+{q:"When was Rizal executed?",a:"December 30, 1896",al:["december 30 1896","dec 30 1896"],e:"Dec 30, 1896, 7:03am, Bagumbayan."},
+{q:"Where was Rizal executed?",a:"Bagumbayan",al:["bagumbayan"],e:"Bagumbayan Field."},
+{q:"What poem did Rizal hide in the alcohol stove?",a:"Mi Ultimo Adios",al:["mi ultimo adios","huling paalam"],e:"Mi Ultimo Adios (My Last Farewell), 14 stanzas."},
+{q:"Who published Mi Ultimo Adios?",a:"Mariano Da Dacana",al:["mariano da dacana"],e:"Mariano Da Dacana in La Independencia, Sept 25, 1898."},
+{q:"How many stanzas does Mi Ultimo Adios have?",a:"14 stanzas",al:["14","14 stanzas"],e:"14 stanzas, translated into 40 languages."},
+{q:"Who was the head of the 7-officer court that tried Rizal?",a:"Lt. Col. Jose Togores Arjona",al:["jose togores arjona","togores arjona"],e:"Lt. Col. Jose Togores Arjona."},
+{q:"What were the three crimes charged against Rizal?",a:"Rebellion, sedition, and illegal association",al:["rebellion sedition illegal association","rebellion","sedition"],e:"Rebellion, sedition, illegal association."},
+{q:"Who discovered the Katipunan plan in Tondo?",a:"Fray Mariano Gil",al:["mariano gil"],e:"Fray Mariano Gil, Aug 19, 1896."},
+{q:"What is the Filipino title of El Filibusterismo?",a:"Ang Paghahari ng Kasakiman",al:["ang paghahari ng kasakiman"],e:"Ang Paghahari ng Kasakiman."},
+{q:"What is the Filipino title of Noli Me Tangere?",a:"Huwag mo akong Salingin",al:["huwag mo akong salingin"],e:"Huwag mo akong Salingin."},
+];
+const TRUEFALSE=[
+{q:"Rizal was born on June 19, 1861 between 11pm and midnight in Calamba, Laguna.",a:true,e:"Tama. June 19, 1861, moonlit Wednesday night."},
+{q:"Rizal was the 7th child of Don Francisco and Dona Teodora.",a:true,e:"Tama. 7th of 11 children."},
+{q:"Rizal was baptized on June 22, 1861 by Fr. Leoncio Lopez.",a:false,e:"Mali. Fr. Rufino Collantes ang nagbinyag; si Fr. Leoncio Lopez lang ang nag-attest sa certificate."},
+{q:"Rizal's mother taught him at age 5.",a:false,e:"Mali. Age 3 pa lang siya tinuruan ni Dona Teodora."},
+{q:"The Story of the Moth was from El Amigo de los Ninos.",a:true,e:"Tama. Doon niya narinig ang fable ng young moth at old moth."},
+{q:"Dr. Austin Craig traced Rizal's Chinese ancestry.",a:true,e:"Tama. Siya ang unang nag-trace ng family roots."},
+{q:"Don Domingo Lamco came from Amoy, China in the mid-17th century.",a:true,e:"Tama. Chinese merchant from Amoy."},
+{q:"Rizal's family belonged to the principalia and rented a farm from the Dominicans.",a:true,e:"Tama. Principalia, farm planted with rice, corn, sugarcane."},
+{q:"Rizal's parents had 11 children: 2 boys and 9 girls.",a:true,e:"Tama."},
+{q:"Paciano convinced Rizal to study in Europe without their parents' permission.",a:true,e:"Tama. Siya ang confidant/adviser ni Rizal."},
+{q:"Concepcion died at age 3 and was Rizal's first sorrow.",a:true,e:"Tama. Concha (1862-1865)."},
+{q:"RA 1425 was enacted on June 12, 1956 and its proponent was Jose P. Laurel.",a:true,e:"Tama."},
+{q:"No law, executive order, or proclamation officially proclaims any Filipino as national hero.",a:true,e:"Tama — ayon sa NHC Executive Summary."},
+{q:"E.O. No. 75 was issued by President Ramos on March 28, 1993 creating the National Heroes Committee.",a:true,e:"Tama."},
+{q:"The NHI Technical Committee recommended 9 national heroes on November 15, 1995.",a:true,e:"Tama: Rizal, Bonifacio, Aguinaldo, Mabini, Del Pilar, Kudarat, Luna, Aquino, Silang."},
+{q:"Otley Bayer's criteria required the hero to be Filipino, peace-loving, with high ideals, and died as a martyr.",a:true,e:"Tama."},
+{q:"Rizal arrived in Hong Kong on November 20, 1891 and opened an eye clinic with Dr. Lorenzo P. Marquez.",a:true,e:"Tama."},
+{q:"The Borneo colony offered 10,000 acres of land.",a:false,e:"Mali. 100,000 acres ang offer ng British."},
+{q:"La Liga Filipina was founded on July 3, 1892.",a:true,e:"Tama."},
+{q:"Rizal was arrested on July 6, 1892, four days after founding La Liga.",a:false,e:"Mali (trap!). July 3 to July 6 ay 3 days, hindi 4. Slide nagsabing four days pero mali ang math."},
+{q:"Captain Carnicero had a cold, hostile relationship with Rizal in Dapitan.",a:false,e:"Mali. Warm and friendly — binigyan niya si Rizal ng freedom."},
+{q:"Rizal wrote a poem for Carnicero's birthday on August 26, 1892.",a:true,e:"Tama."},
+{q:"Lottery Ticket No. 9736 won 20,000 pesos and Rizal's share was 6,200 pesos.",a:true,e:"Tama."},
+{q:"The spy 'Pablo Mercado' was hired by Recollect friars to spy, not to assassinate Rizal.",a:true,e:"Tama. Real name: Florencio Namanan."},
+{q:"Rizal taught 16 boys in Dapitan between 1893 and 1896.",a:true,e:"Tama."},
+{q:"Rizal collected 346 shells (203 species) and exchanged specimens with Dresden Museum.",a:true,e:"Tama."},
+{q:"Rizal expanded his farmland from 16 hectares to 70 hectares.",a:true,e:"Tama."},
+{q:"The Sulpukan was invented in 1887 and sent to Ferdinand Blumentritt.",a:true,e:"Tama."},
+{q:"Rizal's brick machine produced 6,000 bricks per day.",a:true,e:"Tama."},
+{q:"The Cooperative Association of Dapitan Farmers was organized on January 1, 1895 to break the Chinese monopoly.",a:true,e:"Tama."},
+{q:"Rizal knew 22 languages and learned Bisayan, Subanun, and Malay in Dapitan.",a:true,e:"Tama."},
+{q:"Josephine Bracken was born in Hong Kong on October 3, 1876 and adopted by blind George Taufer.",a:true,e:"Tama."},
+{q:"Rizal and Josephine's son Francisco died after three hours and was buried in Dapitan.",a:true,e:"Tama."},
+{q:"Fr. Obach married Rizal and Josephine in Dapitan.",a:false,e:"Mali. Tumanggi si Fr. Obach nang walang permission ng Bishop of Cebu."},
+{q:"Rizal opposed the Katipunan revolution because the people were not ready and lacked weapons and funds.",a:true,e:"Tama."},
+{q:"Rizal accepted the Katipunan's plan to rescue him to Japan.",a:false,e:"Mali. Tumanggi siya — may word of honor siya sa Spanish authorities."},
+{q:"Rizal left Dapitan on July 31, 1896 aboard the steamer Espana.",a:true,e:"Tama."},
+{q:"Rizal was held incommunicado on the Castilla from August 6 to September 2, 1896.",a:true,e:"Tama."},
+{q:"Fray Mariano Gil discovered the Katipunan plan on August 19, 1896 in Tondo.",a:true,e:"Tama."},
+{q:"Rizal sailed to Hong Kong for the second time on February 3, 1888 and was followed by spy Jose Saintz de Verranda.",a:true,e:"Tama."},
+{q:"Rizal stayed in Japan because of O-Sei-San.",a:false,e:"Mali. Almost stayed, pero umalis din siya."},
+{q:"Rizal arrived in the United States on April 28, 1888 aboard the Belgic.",a:true,e:"Tama."},
+{q:"Rizal stayed in London until March 1889, not 1899.",a:true,e:"Tama. 1889 ang tama — trap ang 1899."},
+{q:"Rizal boarded with the Beckett family in London and fell in love with Gertrude Beckett.",a:true,e:"Tama."},
+{q:"Fr. Vicente Garcia defended Noli Me Tangere against the friars.",a:true,e:"Tama."},
+{q:"Mariano Herbosa was denied a Christian burial.",a:true,e:"Tama. Brother-in-law ni Rizal."},
+{q:"The Association Hispano-Filipino was founded on June 12, 1889.",a:true,e:"Tama."},
+{q:"Rizal's annotation of Morga was published in January 1890 by Garnier Freres.",a:true,e:"Tama."},
+{q:"Rizal left Paris for Brussels on January 28, 1890 because Paris was expensive.",a:true,e:"Tama. Boarding house ng Jacoby sisters."},
+{q:"Rizal wrote for La Solidaridad under the names Dimasalang and Laong Laan.",a:true,e:"Tama."},
+{q:"Rizal challenged Antonio Luna to a duel because Luna spoke badly about Nellie Boustead.",a:true,e:"Tama."},
+{q:"Leonor Rivera married Henry Kipping.",a:true,e:"Tama. Binalita ito kay Rizal sa Madrid."},
+{q:"El Filibusterismo was finished in Biarritz on March 29, 1891 and revised by May 30, 1891.",a:true,e:"Tama."},
+{q:"El Filibusterismo was published on September 18, 1891 in Ghent by F. Meyer-Van Loo Press.",a:true,e:"Tama."},
+{q:"Rizal pawned his jewels to pay the down payment and Valentin Ventura sent money from Paris.",a:true,e:"Tama."},
+{q:"El Filibusterismo was dedicated to the Motherland.",a:false,e:"Mali. GOMBURZA ang dedication ng Fili; Motherland ang sa Noli."},
+{q:"Simuon is Crisostomo Ibarra disguised as a wealthy jeweler seeking revenge.",a:true,e:"Tama."},
+{q:"Basilio initially rejects revolution but joins Simuon after Juli's death.",a:true,e:"Tama."},
+{q:"Kabesang Tales becomes the bandit Matanglawin.",a:true,e:"Tama. Telesforo Juan de Dios."},
+{q:"Isagani throws the explosive wedding lamp into the river to save Paulita and the guests.",a:true,e:"Tama."},
+{q:"Maria Clara dies in the convent, causing Simuon to abandon his planned attack.",a:true,e:"Tama."},
+{q:"Fr. Florentino throws Simuon's jewels into the sea so greedy people cannot use them.",a:true,e:"Tama."},
+{q:"Noli Me Tangere is a 'work of the heart' while El Filibusterismo is a 'work of the head'.",a:true,e:"Tama."},
+{q:"Noli has 64 chapters and El Filibusterismo has 38 chapters.",a:true,e:"Tama."},
+{q:"Noli was preferred by Rizal, Del Pilar, and Retana; Fili was preferred by Blumentritt, Lopez Jaena, and Palma.",a:true,e:"Tama."},
+{q:"Rizal left Manila on September 2, 1896 aboard the Isla de Panay for Spain/Cuba.",a:true,e:"Tama."},
+{q:"Rizal arrived in Manila on November 3, 1896 and was brought to Fort Santiago.",a:true,e:"Tama."},
+{q:"The preliminary investigation began on November 20, 1896 before Judge Advocate Col. Francisco Olive.",a:true,e:"Tama. 5-day investigation."},
+{q:"Nicolas de la Pena recommended 1 million pesos indemnity and that only an army officer defend Rizal.",a:true,e:"Tama."},
+{q:"Lt. Luis Taviel de Andrade was the brother of Rizal's former bodyguard in Calamba in 1887.",a:true,e:"Tama."},
+{q:"Rizal wrote his Manifesto on December 15 denouncing bloody struggle and promoting education and industry.",a:true,e:"Tama."},
+{q:"Rizal's court-martial was on December 26, 1896 at Cuartel de Espana with 7 officers led by Togores Arjona.",a:true,e:"Tama."},
+{q:"Rizal was executed on December 30, 1896 at 7:03am at Bagumbayan and twisted to face the firing squad.",a:true,e:"Tama."},
+{q:"Rizal was born on June 19, 1862.",a:false,e:"Mali. 1861, hindi 1862."},
+{q:"Rizal's father studied at the Ateneo Municipal.",a:false,e:"Mali. College of San Jose ang pinag-aralan ni Don Francisco."},
+{q:"La Liga Filipina was founded on July 6, 1892.",a:false,e:"Mali. July 3, 1892 ang founding; July 6 ang arrest."},
+{q:"Rizal was exiled in Dapitan for 2 years.",a:false,e:"Mali. 4 years (1892-1896)."},
+{q:"Rizal's Dapitan school had 20 boys.",a:false,e:"Mali. 16 boys."},
+{q:"The Sulpukan was invented in Dapitan in 1893.",a:false,e:"Mali. 1887 pa, bago ang exile."},
+{q:"Josephine Bracken was born on October 3, 1878.",a:false,e:"Mali. 1876."},
+{q:"Rizal left Dapitan on August 31, 1896.",a:false,e:"Mali. July 31, 1896."},
+{q:"Rizal arrived in the United States on May 28, 1888.",a:false,e:"Mali. April 28, 1888."},
+{q:"El Filibusterismo was published on September 18, 1892.",a:false,e:"Mali. 1891, hindi 1892."},
+{q:"Rizal was executed at Luneta Park.",a:false,e:"Mali. Bagumbayan ang execution site."},
+{q:"Mi Ultimo Adios has 12 stanzas.",a:false,e:"Mali. 14 stanzas."},
+{q:"Rizal's trial was fair and followed due process.",a:false,e:"Mali. Prejudged, moro-moro — hindi niya kilala ang witnesses laban sa kanya."},
+{q:"Rizal accepted the first retraction letter from Archbishop Nozaleda without changes.",a:false,e:"Mali. Rejected niya kasi too long; edited niya ang draft ni Fr. Pio Pi."},
+{q:"Rizal asked to face the firing squad but was ordered to take a back shot.",a:true,e:"Tama. Back shot ang utos ng captain."},
+{q:"Dr. Felipe Ruiz Castillo was amazed because Rizal's pulse was abnormal.",a:false,e:"Mali. Normal ang vital signs/pulse — amazed siya na hindi natatakot si Rizal mamatay."},
+{q:"Rizal's mother was born in Meisik, Sta. Cruz, Manila and studied at Colegio de Sta. Rosa.",a:true,e:"Tama."},
+{q:"Rizal's father was born in Binan, Laguna.",a:true,e:"Tama."},
+];
+const MATCHING=[
+{term:"La Liga Filipina",def:"Civic association founded July 3, 1892 to unite Filipinos for peaceful reforms",e:"Founded July 3, 1892; Rizal arrested July 6."},
+{term:"Katipunan",def:"Secret society founded by Bonifacio to win independence by force",e:"Founded by Andres Bonifacio; Rizal opposed its premature revolution."},
+{term:"Dapitan",def:"Place of Rizal's 4-year exile 1892-1896 where he taught, farmed, invented",e:"Dapitan, Mindanao — school, farm, inventions, Josephine."},
+{term:"Bagumbayan",def:"Execution site where Rizal was shot Dec 30, 1896 at 7:03am",e:"Bagumbayan Field."},
+{term:"Fort Santiago",def:"Prison where Rizal spent his last three months",e:"Fort Santiago, Manila."},
+{term:"Simuon",def:"Ibarra disguised as wealthy jeweler seeking violent revolution in El Filibusterismo",e:"Crisostomo Ibarra as Simuon."},
+{term:"Basilio",def:"Sisa's surviving son, medical student who joins Simuon after Juli's death",e:"Basilio — initially rejects revolution."},
+{term:"Isagani",def:"Poet, Basilio's best friend, throws explosive lamp into river",e:"Isagani — Paulita's ex, emotional poet."},
+{term:"Kabesang Tales",def:"Telesforo Juan de Dios, ex-cabeza turned bandit Matanglawin",e:"Kabesang Tales — loses land to friars."},
+{term:"Padre Florentino",def:"Secular priest, Isagani's godfather, shelters Simuon and throws jewels in sea",e:"Fr. Florentino — moral voice of Fili."},
+{term:"GOMBURZA",def:"Gomez, Burgos, Zamora — priests executed 1872, dedicatees of El Filibusterismo",e:"Dedicated to GOMBURZA."},
+{term:"Noli Me Tangere",def:"Rizal's first novel, 64 chapters, work of the heart, dedicated to Motherland",e:"Noli — Touch Me Not, pacifist/education."},
+{term:"El Filibusterismo",def:"Rizal's second novel, 38 chapters, work of the head, dedicated to GOMBURZA",e:"Fili — Reign of Greed, revenge."},
+{term:"Mi Ultimo Adios",def:"14-stanza farewell poem hidden in alcohol stove, published 1898",e:"Mi Ultimo Adios — 40 languages."},
+{term:"Himno a Talisay",def:"Hymn Rizal wrote for his Dapitan students",e:"Himno a Talisay — brave protectors."},
+{term:"Himno Al Trabajo",def:"Poem Rizal wrote before leaving for Europe (Hymn to Labor)",e:"Himno Al Trabajo — before return to Europe."},
+{term:"Sulpukan",def:"Wooden cigarette lighter invented 1887, sent to Blumentritt",e:"Sulpukan — 1887 invention."},
+{term:"Paciano Rizal",def:"Rizal's elder brother, confidant who convinced him to go to Europe",e:"Paciano — second child, adviser."},
+{term:"Teodora Alonzo",def:"Rizal's mother and first teacher who told the Story of the Moth",e:"Dona Teodora — first teacher."},
+{term:"Josephine Bracken",def:"Irish girl from Hong Kong, Rizal's partner in Dapitan",e:"Josephine — son Francisco died after 3 hours."},
+{term:"O-Sei-San",def:"Japanese woman (Usui Seiko) Rizal loved in Japan in 1888",e:"O-Sei-San — almost stayed in Japan."},
+{term:"Gertrude Beckett",def:"London landlady's daughter Rizal loved while boarding with Becketts",e:"Gertrude Beckett — London romance."},
+{term:"Leonor Rivera",def:"Rizal's fiancee who married Henry Kipping",e:"Leonor Rivera — broke Rizal's heart in Madrid."},
+{term:"Nellie Boustead",def:"Biarritz romance that inspired El Filibusterismo; reason for Luna duel",e:"Nellie Boustead — Biarritz inspiration."},
+{term:"Valentin Ventura",def:"Paris friend who sent money to print El Filibusterismo",e:"Valentin Ventura — financed Fili."},
+{term:"Blumentritt",def:"Austrian professor friend in Germany who received the Sulpukan",e:"Ferdinand Blumentritt."},
+{term:"Carnicero",def:"Spanish commander in Dapitan, warm friend of Rizal",e:"Capt. Ricardo Carnicero."},
+{term:"Pio Valenzuela",def:"Katipunan emissary who visited Rizal in Dapitan in 1896",e:"Dr. Pio Valenzuela — rescue attempt refused."},
+{term:"Mariano Gil",def:"Tondo priest who discovered Katipunan plan Aug 19, 1896",e:"Fray Mariano Gil."},
+{term:"Ramon Blanco",def:"Governor-General who approved Rizal's Cuba trip",e:"Gov.-Gen. Ramon Blanco."},
+{term:"Camilo de Polavieja",def:"Blanco's successor who ordered Rizal's execution",e:"Gov. Polavieja signed execution."},
+{term:"Rafael Dominguez",def:"Judge Advocate who reviewed Rizal's case after investigation",e:"Capt. Rafael Dominguez."},
+{term:"Nicolas de la Pena",def:"Judge Advocate General who recommended trial + 1M pesos indemnity",e:"Nicolas de la Pena."},
+{term:"Luis Taviel de Andrade",def:"Army officer defense counsel for Rizal; brother of former bodyguard",e:"Lt. Taviel de Andrade."},
+{term:"Jose Togores Arjona",def:"Head of the 7-officer court-martial that tried Rizal",e:"Lt. Col. Togores Arjona."},
+{term:"Vicente Garcia",def:"Priest who defended Noli Me Tangere against friars",e:"Fr. Vicente Garcia."},
+{term:"Morga",def:"Antonio de Morga, author of Sucesos de las Islas Filipinas annotated by Rizal",e:"Morga annotation published Jan 1890."},
+{term:"La Solidaridad",def:"Propaganda newspaper Rizal wrote for as Dimasalang/Laong Laan",e:"La Solidaridad."},
+{term:"Association Hispano-Filipino",def:"Founded June 12, 1889 in London to promote reforms and unity",e:"Association Hispano-Filipino."},
+{term:"Kidlat Club",def:"Paris club organized by Rizal",e:"Kidlat Club — later Indios Bravos."},
+{term:"Indios Bravos",def:"Paris group wanting Filipinos recognized by Spain for excellence",e:"Indios Bravos."},
+{term:"New Calamba",def:"Planned Borneo colony for Calamba evictees, 100,000 acres offered",e:"New Calamba — Borneo plan."},
+{term:"Cooperative Association",def:"Dapitan farmers cooperative Jan 1, 1895 to break Chinese monopoly",e:"Cooperative Association of Dapitan Farmers."},
+{term:"Principalia",def:"Aristocratic town family class Rizal's family belonged to",e:"Principalia — Rizal's family."},
+{term:"RA 1425",def:"Rizal Law mandating teaching Rizal, enacted June 12, 1956",e:"RA 1425 — Jose P. Laurel."},
+{term:"E.O. No. 75",def:"Ramos order March 28, 1993 creating National Heroes Committee",e:"E.O. No. 75."},
+{term:"Otley Bayer",def:"Anthropologist who set criteria for national hero (Filipino, peace-loving, martyr)",e:"Dr. Otley Bayer criteria."},
+{term:"Austin Craig",def:"Rizalist who traced Rizal's Chinese ancestry",e:"Dr. Austin Craig."},
+{term:"Lamco",def:"Original surname changed to Mercado to avoid Spanish conflict",e:"Don Domingo Lamco."},
+{term:"Story of the Moth",def:"Fable mother told Rizal about moth burning in lamp; taught obedience",e:"Story of the Moth — El Amigo de los Ninos."},
+{term:"El Amigo de los Ninos",def:"Spanish reader mother used to teach Rizal to read",e:"The Children's Friend."},
+{term:"Dresden Museum",def:"German museum Rizal exchanged specimens with for books/instruments",e:"Dresden Museum."},
+{term:"Matanglawin",def:"Bandit name of Kabesang Tales meaning Hawkeye",e:"Matanglawin — Luzon bandit."},
+{term:"Mene Thecel Phares",def:"Writing on the wall, mysterious message in El Filibusterismo",e:"Mene Thecel Phares."},
+{term:"Quiroga",def:"Chinese businessman who hid Simuon's weapons in his house",e:"Quiroga — smuggler."},
+{term:"Don Custodio",def:"Journalist students asked about Academia de Castellano decision",e:"Don Custodio de Salazar y Sanchez."},
+{term:"Paulita Gomez",def:"Isagani's girlfriend who married Juanito Pelaez",e:"Paulita Gomez — niece of Dona Victorina."},
+{term:"Juli",def:"Juliana de Dios, Basilio's girlfriend and Kabesang Tales' daughter",e:"Juli — dies resisting Fr. Camorra."},
+{term:"Placido Penitente",def:"UST student, intelligent, controls temper against Fr. Millon",e:"Placido Penitente."},
+{term:"Ben Zayb",def:"Abraham Ibanez, journalist who thinks only he thinks in Philippines",e:"Ben Zayb."},
+];
+const FOCUSED_ID=IDENTIFICATION.slice(18);
+const FOCUSED_TF=TRUEFALSE.slice(16,TRUEFALSE.length-2);
+const FOCUSED_MATCH=MATCHING.filter(m=>!["Paciano Rizal","Teodora Alonzo","Principalia","RA 1425","E.O. No. 75","Otley Bayer","Austin Craig","Lamco","Story of the Moth","El Amigo de los Ninos"].includes(m.term));
+let currentMode="ALL";
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function norm(s){return (s||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();}
+function isCorrectID(input,q){const n=norm(input);if(!n)return false;if(n===norm(q.a))return true;if(q.al&&q.al.some(x=>n===norm(x)))return true;if(n.includes(norm(q.a))&&norm(q.a).length>3)return true;return false;}
+let deck=[],idx=0,score=0,streak=0,bestStreak=0,answered=0,correctCount=0,mistakes=[],current=null,hintUsed=false,answeredThis=false;
+const $=id=>document.getElementById(id);
+function buildDeck(mode){
+ currentMode=mode||currentMode||"ALL";
+ if(currentMode==="FOCUSED"){
+  deck=[
+   ...FOCUSED_ID.map(q=>({type:"ID",...q})),
+   ...FOCUSED_TF.map(q=>({type:"TF",...q})),
+   ...FOCUSED_MATCH.map(q=>({type:"MATCH",...q}))
+  ];
+ }else{
+  deck=[
+   ...IDENTIFICATION.map(q=>({type:"ID",...q})),
+   ...TRUEFALSE.map(q=>({type:"TF",...q})),
+   ...MATCHING.map(q=>({type:"MATCH",...q}))
+  ];
+ }
+ shuffle(deck);idx=0;
+}
+function updateStats(){
+ $("scoreVal").textContent=score;
+ $("streakVal").textContent=streak;
+ $("qVal").textContent=(idx+1)+" / "+deck.length;
+ const acc=answered?Math.round(correctCount/answered*100):100;
+ $("accVal").textContent=acc+"%";
+ $("progBar").style.width=(answered? (answered/(answered+Math.max(1,deck.length-idx))*100):0)+"%";
+}
+function showScreen(id){
+ ["startScreen","gameScreen","feedbackScreen","resultScreen"].forEach(s=>$(s).hidden=(s!==id));
+}
+function beep(ok){
+ try{
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const o=ctx.createOscillator(),g=ctx.createGain();
+  o.connect(g);g.connect(ctx.destination);
+  o.frequency.value=ok?880:220;o.type="sine";
+  g.gain.value=0.12;o.start();o.stop(ctx.currentTime+0.18);
+ }catch(e){}
+}
+function showQuestion(){
+ if(idx>=deck.length){buildDeck(currentMode);alert("Deck tapos na! Na-shuffle ulit — infinite mode, tuloy lang!");}
+ current=deck[idx];hintUsed=false;answeredThis=false;
+ $("hintArea").innerHTML="";
+ const area=$("answerArea");area.innerHTML="";
+ if(current.type==="ID"){
+  $("typeBadge").textContent="IDENTIFICATION";
+  $("qText").textContent=current.q;
+  area.innerHTML='<input type="text" id="idInput" placeholder="I-type ang sagot mo dito..." autocomplete="off"><div class="btn-row"><button class="btn btn-gold" id="checkBtn">Check Answer ✓</button><button class="btn btn-dark" id="hintBtn">💡 Hint (4 choices)</button></div>';
+  $("checkBtn").onclick=()=>checkID($("idInput").value);
+  $("idInput").addEventListener("keydown",e=>{if(e.key==="Enter")checkID($("idInput").value);});
+  $("hintBtn").onclick=showIDHint;
+ }else if(current.type==="TF"){
+  $("typeBadge").textContent="TRUE OR FALSE — Mahirap!";
+  $("qText").textContent=current.q;
+  area.innerHTML='<div class="tf-row"><button class="btn btn-green" id="trueBtn">TRUE ✓</button><button class="btn btn-red" id="falseBtn">FALSE ✗</button></div>';
+  $("trueBtn").onclick=()=>answerTF(true);
+  $("falseBtn").onclick=()=>answerTF(false);
+ }else{
+  $("typeBadge").textContent="MATCHING — Pili ang tamang definition";
+  $("qText").innerHTML='Ano ang ibig sabihin ng <span class="pill">'+current.term+'</span>?';
+  const others=(currentMode==="FOCUSED"?FOCUSED_MATCH:MATCHING).filter(m=>m.term!==current.term);
+  shuffle(others);
+  const choices=shuffle([current.def,others[0].def,others[1].def,others[2].def]);
+  choices.forEach(c=>{
+   const b=document.createElement("button");b.className="choice";b.textContent=c;
+   b.onclick=()=>answerMatch(c);area.appendChild(b);
+  });
+ }
+ updateStats();showScreen("gameScreen");
+}
+function showIDHint(){
+ if(hintUsed){return;}
+ hintUsed=true;
+ const pool=(currentMode==="FOCUSED"?FOCUSED_ID:IDENTIFICATION).map(x=>x.a).filter(x=>x!==current.a);
+ shuffle(pool);
+ const choices=shuffle([current.a,pool[0],pool[1],pool[2]]);
+ let html='<div class="hintbox"><h4>💡 Hint — piliin ang tamang sagot (1 tama, 3 mali):</h4>';
+ choices.forEach(c=>{html+='<button class="choice" data-c="'+c.replace(/"/g,"&quot;")+'">'+c+'</button>';});
+ html+='</div>';
+ $("hintArea").innerHTML=html;
+ document.querySelectorAll("#hintArea .choice").forEach(b=>{
+  b.onclick=()=>checkID(b.dataset.c,true);
+ });
+}
+function checkID(val,fromHint){
+ if(answeredThis)return;
+ const ok=isCorrectID(val,current);
+ finish(ok,current.a);
+}
+function answerTF(val){
+ if(answeredThis)return;
+ finish(val===current.a,current.a?"TRUE":"FALSE");
+}
+function answerMatch(choice){
+ if(answeredThis)return;
+ finish(choice===current.def,current.def);
+}
+function finish(ok,correctAnswer){
+ answeredThis=true;answered++;
+ if(ok){correctCount++;streak++;bestStreak=Math.max(bestStreak,streak);score+=hintUsed?5:10;}
+ else{streak=0;mistakes.push({q:current.q||current.term,correct:correctAnswer,exp:current.e||""});}
+ beep(ok);
+ $("fbTitle").textContent=ok?"🎉 Tama! +"+(hintUsed?5:10):"❌ Mali";
+ $("fbTitle").className="feedback "+(ok?"correct":"wrong");
+ $("fbAnswer").textContent="Tamang sagot: "+correctAnswer;
+ $("fbExplain").textContent=current.e||"";
+ updateStats();showScreen("feedbackScreen");
+}
+function showResults(){
+ $("rTotal").textContent=answered;
+ $("rCorrect").textContent=correctCount;
+ const acc=answered?Math.round(correctCount/answered*100):0;
+ $("rAcc").textContent=acc+"%";
+ $("rBest").textContent=bestStreak;
+ $("rScore").textContent=score;
+ let grade="Keep practicing!";
+ if(acc>=90)grade="🏆 A+ — Finals Ready!";
+ else if(acc>=80)grade="🥇 A — Malapit na!";
+ else if(acc>=70)grade="🥈 B — Review mo pa yung mali";
+ else if(acc>=60)grade="🥉 C — Balikan mo yung explanations";
+ else grade="📚 D — Aralin mo muna yung mistakes sa baba";
+ $("rGrade").textContent=grade;
+ try{
+  const prev=parseInt(localStorage.getItem("rizalBest")||"0");
+  if(score>prev)localStorage.setItem("rizalBest",score);
+ }catch(e){}
+ let html="";
+ if(mistakes.length){
+  html="<h3>📝 Mga mali mo — i-review mo ito:</h3><ul class='list'>";
+  mistakes.slice(0,30).forEach(m=>{html+="<li><b>"+m.q+"</b><br>Tamang sagot: <b>"+m.correct+"</b>"+(m.exp?"<br><span class='small'>"+m.exp+"</span>":"")+"</li>";});
+  html+="</ul>";
+  if(mistakes.length>30)html+="<p class='small'>... at "+(mistakes.length-30)+" pa. Play again para ma-practice ulit!</p>";
+ }else{
+  html="<p class='center'>Perfect! Walang mali. Play again para i-maintain!</p>";
+ }
+ $("mistakesBox").innerHTML=html;
+ showScreen("resultScreen");
+}
+$("startBtn").onclick=()=>{buildDeck("ALL");score=0;streak=0;bestStreak=0;answered=0;correctCount=0;mistakes=[];showQuestion();};
+$("focusedBtn").onclick=()=>{buildDeck("FOCUSED");score=0;streak=0;bestStreak=0;answered=0;correctCount=0;mistakes=[];showQuestion();};
+$("nextBtn").onclick=()=>{idx++;showQuestion();};
+$("endBtn").onclick=showResults;
+$("againBtn").onclick=()=>{buildDeck(currentMode);score=0;streak=0;bestStreak=0;answered=0;correctCount=0;mistakes=[];showQuestion();};
+$("homeBtn").onclick=()=>showScreen("startScreen");
+try{
+ const b=localStorage.getItem("rizalBest");
+ if(b)$("bestLine").textContent="Best score mo: "+b+" pts";
+}catch(e){}
+</script>
+</body>
+</html>
